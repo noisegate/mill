@@ -7,6 +7,14 @@ import gcoder
 pinbase = 65
 i2c_addr = 0x20
 
+class Movements(object):
+
+    UP    = "up   "
+    RIGHT = "right"
+    DOWN  = "down "
+    LEFT  = "left "
+    NONE  = "none "
+
 class Controll(object):
 
     def __init__(self):
@@ -16,6 +24,11 @@ class Controll(object):
         self.x = pololu.Pololu(pololu.Pins(enable=22, direction=16,step=18))    
         self.x.speed = 120
         self.y.speed = 120
+
+        self.xcoord = 0
+        self.ycoord = 0
+
+        self.movement = Movements.NONE
 
         GPIO.setmode(GPIO.BCM)
         #GPIO.setup(5, GPIO.IN, pull_up_down=GPIO.PUD_UP)
@@ -35,42 +48,36 @@ class Controll(object):
 
         self.state =0
 
-        wp.pinMode(19,0)
-        wp.pullUpDnControl(19,2)
+        #wp.pinMode(19,0)
+        #wp.pullUpDnControl(19,2)
 
-        for i in range(65,81):
-            wp.pinMode(i,0)
+        for i in range(65,73):
+            wp.pinMode(i,1)
             wp.pullUpDnControl(i,2)
+
+        for i in range(73,81):
+            wp.pinMode(i,0)
 
         #wp.pinMode(65, 1)#pin 65 output
         #wp.digitalWrite(65, 1)#pin 65 high
 
     def callback(self, channel):
-        print "ISR"
         state = self.i2c.readReg8(self.dev, 0x09)
+        if (state == 0b11111110): 
+            self.movement = Movements.RIGHT
 
-        if ((state&0b1) < (self.state&0b1)):
-            #falling edge channel 1
-            if (not wp.digitalRead(73)):
-                print "DOWN"
-                self.down()
+        if (state == 0b11111101):
+            self.movement = Movements.DOWN
         
-        if ((state&0b10) < (self.state&0b10)):
-            #falling edge channel 2
-            if (not wp.digitalRead(74)):
-                print "UP"
-                self.up()
-         
-        #if (not wp.digitalRead(74)):
-        #    print "UP" 
-        #    self.up()
-        #if (not wp.digitalRead(75)):
-        #    print "LEFT" 
-        #    self.left()
-        #if (not wp.digitalRead(76)):
-        #    print "DOWN"
-        #    self.down()
-  
+        if (state == 0b11111011):
+            self.movement = Movements.LEFT
+
+        if (state == 0b11110111):
+            self.movement = Movements.UP
+
+        if (state == 0b11111111):
+            self.movement = Movements.NONE
+
     def up(self):
         print "moving up"
         self.x.stepsleft(1)
@@ -85,10 +92,16 @@ class Controll(object):
     def right(self):
         self.y.stepsright(1)
    
-    def loop(self):
-        while(1):
-            time.sleep(0.1)
-            print wp.digitalRead(19)
+    def handler(self):
+        if (self.movement == Movements.UP):
+            self.ycoord+=1
+        if (self.movement == Movements.DOWN):
+            self.ycoord-=1
+        if (self.movement == Movements.RIGHT):
+            self.xcoord+=1
+        if (self.movement == Movements.LEFT):
+            self.xcoord-=1
+            
    
     def load(self, filename):
         

@@ -5,19 +5,19 @@ import mill
 
 class Interface(object):
 
-    def __init__(self):
+    def __init__(self, controller):
         self.screen = curses.initscr()
         self.size = self.screen.getmaxyx()
         self.height = self.size[0]
         self.width = self.size[1]
         curses.cbreak()
+        self.screen.nodelay(1)#nonblocking fethc getch
         self.callback=None
 
         self.halfwidth = self.width/2
         self.halfheight = self.height/2
-
-        self.win2 = curses.newwin(1, self.halfwidth-1 , self.height-1, self.halfwidth-1)
-        self.menu = curses.newwin(1, 1, self.height, self.halfwidth-1)
+    
+        self.controller = controller
 
     def main(self):
         self.screen.clear()
@@ -26,13 +26,11 @@ class Interface(object):
         self.screen.refresh()
 
     def draw(self):
-        self.menu.box()
-        self.menu.refresh()
-        self.win2.box()
-        self.win2.refresh()
+        self.screen.box()
+        self.screen.refresh()
 
     def menu(self):
-        self.menu.addstr(1, 1, "MENU")
+        pass
 
     def loop(self):
         go=1
@@ -41,26 +39,34 @@ class Interface(object):
         while(go):
             c = self.screen.getch()
 
+        
+            self.screen.addstr(int(0.9*self.height),2, "MANUAL CTRL:"+controller.movement)
+            self.screen.addstr(int(0.9*self.height)+1,2, "CURR CRD:"+str(controller.xcoord)+":"+str(controller.ycoord))
+
             if (c==ord('q')):
                 go=0
             if (c==ord('s')):    
                 self.screen.addstr(11,10,"Pressed s")
             if (c==ord('c')):
                 self.screen.addstr(12,10,"Invoked callback")
-                self.win2.addstr(0,0,"win")
                 self.callback()
+
+            time.sleep(0.1)
+            controller.handler()
+            self.screen.refresh()
 
     def quit(self):
         curses.endwin()
 
 if __name__ == "__main__":
 
+    def mycallback():
+        print "cb"
+
     controller = mill.Controll() 
-    controller.loop()
-    exit()
     
-    myscreen =Interface()
-    
+    myscreen =Interface(controller)
+    myscreen.callback = mycallback
     myscreen.main()
     myscreen.loop()
     myscreen.quit()
