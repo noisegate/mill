@@ -1,9 +1,8 @@
 #curses interface for the Mill
 import curses
 import time
-import mill
+#import mill
 import fbpy.fb as fb
-
 
 class Interface(object):
     LEFTCOLUMN = 10
@@ -21,7 +20,7 @@ class Interface(object):
                     [19, LEFTCOLUMN, "..."]
                 ]
 
-    def __init__(self, controller):
+    def __init__(self):
         self.screen = curses.initscr()
         self.size = self.screen.getmaxyx()
         self.height = self.size[0]
@@ -34,8 +33,6 @@ class Interface(object):
         self.halfwidth = self.width/2
         self.halfheight = self.height/2
     
-        self.controller = controller
-
         self.surface = fb.Surface()
         self.graphics = fb.Surface((400,400),(400,400))
 
@@ -56,13 +53,44 @@ class Interface(object):
         for line in self.menudata:
             self.screen.addstr(line[0], line[1],line[2]) 
 
+    def resetorigin(self):
+        pass
+
+    def decrementy(self):
+        pass
+
+    def decrementx(self):
+        pass
+
+    def incrementx(self):
+        pass
+
+    def incrementy(self):
+        pass
+
+    def millhandler(self):
+        pass
+
+    def updatedata(self,direction, x, y):
+        self.screen.addstr( int(0.9*self.height),
+                            self.LEFTCOLUMN, 
+                            "MANUAL CTRL: {0:<10}".format(direction))
+        self.screen.addstr( int(0.9*self.height)+1,
+                            self.LEFTCOLUMN, 
+                            "CURR CRD: x = {0:<4}  y = {1:<4}".format(x,y))
+
     def loop(self):
         go=1
         self.draw()
         self.menu()
+        x=0
+        y=0
+        direction='NONE'
+
         while(go):
             c = self.screen.getch()
-        
+            """
+                this is an overiirude
             self.screen.addstr( int(0.9*self.height),
                                 self.LEFTCOLUMN, 
                                 "MANUAL CTRL: {0:<10}".format(controller.Movement.names[controller.movement]))
@@ -70,30 +98,29 @@ class Interface(object):
                                 self.LEFTCOLUMN, 
                                 "CURR CRD: x = {0:<4}  y = {1:<4}".format(str(controller.xcoord), str(controller.ycoord)))
             
-
+            
             self.graphics.point((0.5+controller.xcoord/1000.0, 1.0-0.5+controller.ycoord/1000.0))
             self.graphics.update()
-
+            """
+            self.updatedata(direction, x, y)
+        
             if (c==ord('q')):
                 go=0
             elif (c==ord('s')):   
                 pass
-            elif (c==ord('c')):
-                self.callback()
             elif (c==ord('o')):
-                self.controller.xcoord=0
-                self.controller.ycoord=0
+                self.resetorigin()
             elif (c==ord('i')):
-                self.controller.ycoord-=1
+                self.decrementy()
             elif (c==ord('m')):
-                self.controller.ycoord+=1
+                self.incrementy()
             elif (c==ord('j')):
-                self.controller.xcoord-=1
+                self.decrementx()
             elif (c==ord('k')):
-                self.controller.xcoord+=1
+                self.incrementx()
 
             time.sleep(0.02)
-            controller.handler()
+            self.millhandler()
             self.screen.refresh()
 
     def quit(self):
@@ -104,11 +131,8 @@ if __name__ == "__main__":
     def mycallback():
         pass
 
-    controller = mill.Controll() 
+    interface =Interface()
     
-    interface =Interface(controller)
-    
-    interface.callback = mycallback
     interface.main()
     interface.loop()
     interface.quit()
