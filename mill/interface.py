@@ -67,6 +67,9 @@ class Interface(object):
     def millhandler(self):
         pass
 
+    def generichandler(self, arg):
+        pass
+
     def dowhateverSis(self):
         pass
 
@@ -77,6 +80,8 @@ class Interface(object):
         self.screen.addstr( int(0.9*self.height)+1,
                             self.LEFTCOLUMN, 
                             "CURR CRD: x = {0:<4}  y = {1:<4}".format(x,y))
+
+        self.screen.refresh()
 
     def loadfile(self):
         pass        
@@ -101,8 +106,22 @@ class Interface(object):
                 go=0
             elif (c==ord('l')):
                 self.loadfile()
-            elif (c==ord('s')):   
-                self.dowhateverSis()
+            elif (c==ord('S')):   
+                self.dowhateverSis(0)
+            elif (c==ord('C')):
+                self.dowhateverSis(1)
+            elif (c==ord('w')):
+                self.generichandler('w')
+            elif (c==ord('z')):
+                self.generichandler('z')
+            elif (c==ord('a')):
+                self.generichandler('a')
+            elif (c==ord('s')):
+                self.generichandler('s')
+            elif (c==ord('+')):
+                self.generichandler('+')
+            elif (c==ord('-')):
+                self.generichandler('-')
             elif (c==ord('o')):
                 self.resetorigin()
             elif (c==ord('i')):
@@ -125,13 +144,12 @@ class Interface(object):
 
 if __name__ == "__main__":
 
-    def mycallback():
-        pass
-
     class Mysim(gcode.Simulator):
 
         def __init__(self, surf, interfaceself):
             self.interfaceself = interfaceself
+            self.X=0
+            self.Y=0
             gcode.Simulator.__init__(self, surf)
 
         def raisedrill(self):
@@ -149,10 +167,14 @@ if __name__ == "__main__":
             self.interfaceself.ifpause()
 
         def movex(self, dx):
-            pass
+            #self.interfaceself.drillmovemessage("move x")
+            self.X+=dx
+            self.interfaceself.updatedata("none", self.X, self.Y)
 
         def movey(self, dy):
-            pass
+            #self.interfaceself.drillmovemessage("move y")
+            self.Y+=dy
+            self.interfaceself.updatedata("none", self.X, self.Y)
 
     class Myinterface(Interface):
     
@@ -172,7 +194,8 @@ if __name__ == "__main__":
 
         def ifpause(self):
             c=self.screen.getch()
-            if (c==ord(' ')): self.pause()
+            if (c==ord(' ')): 
+                self.drillmessage("paused, space to continue")
 
         def resetorigin(self):
             pass
@@ -190,13 +213,24 @@ if __name__ == "__main__":
         def incrementy(self):
             pass
 
-        def dowhateverSis(self):
-            self.sim.sim()
+        def dowhateverSis(self, mode):
+            self.sim.draw()
+            self.sim.sim(mode)
+
+        def resetorigin(self):
+            self.sim.X = 0
+            self.sim.Y = 0
 
         def drillmessage(self, message):
             self.screen.addstr(int(0.8*self.height),self.LEFTCOLUMN, "Drill MSG:{0}".format(message))
             self.screen.refresh()
             self.pause()
+            self.screen.addstr(int(0.8*self.height),self.LEFTCOLUMN,"                                                       ")
+            self.screen.refresh()
+
+        def drillmovemessage(self, message):
+            self.screen.addstr(int(0.8*self.height),self.LEFTCOLUMN, "Drill MSG:{0}".format(message))
+            self.screen.refresh()
             self.screen.addstr(int(0.8*self.height),self.LEFTCOLUMN,"                                                       ")
             self.screen.refresh()
 
