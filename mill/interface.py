@@ -3,6 +3,7 @@ import curses
 import time
 #import mill
 import fbpy.fb as fb
+import gcodeparser.gcodeparser as gcode
 
 class Interface(object):
     LEFTCOLUMN = 10
@@ -12,7 +13,7 @@ class Interface(object):
                     [11, LEFTCOLUMN, "===="],
                     [12, LEFTCOLUMN, "q)      quit"],
                     [13, LEFTCOLUMN, "c)      user defined"],
-                    [14, LEFTCOLUMN, "s)      MENU"],
+                    [14, LEFTCOLUMN, "s)      simulate"],
                     [15, LEFTCOLUMN, "o)      set origin"],
                     [16, LEFTCOLUMN, "l)      load file"],
                     [17, LEFTCOLUMN, "<space> pause/play"],
@@ -32,18 +33,13 @@ class Interface(object):
 
         self.halfwidth = self.width/2
         self.halfheight = self.height/2
-    
-        self.surface = fb.Surface()
-        self.graphics = fb.Surface((400,400),(400,400))
 
     def main(self):
         self.screen.clear()
-        #self.screen.box()
-        #self.screen.addstr(10,10,"Hello world")
         self.screen.refresh()
-        self.graphics.clear()
-        self.graphics.rect((0.0,0.0),(1.0,1.0))
-        self.graphics.update()
+        self.surf.clear()
+        self.surf.rect((0.0,0.0),(1.0,1.0))
+        self.surf.update()
 
     def draw(self):
         self.screen.box()
@@ -71,6 +67,9 @@ class Interface(object):
     def millhandler(self):
         pass
 
+    def dowhateverSis(self):
+        pass
+
     def updatedata(self,direction, x, y):
         self.screen.addstr( int(0.9*self.height),
                             self.LEFTCOLUMN, 
@@ -79,6 +78,9 @@ class Interface(object):
                             self.LEFTCOLUMN, 
                             "CURR CRD: x = {0:<4}  y = {1:<4}".format(x,y))
 
+    def loadfile(self):
+        pass        
+        
     def loop(self):
         go=1
         self.draw()
@@ -90,15 +92,6 @@ class Interface(object):
         while(go):
             c = self.screen.getch()
             """
-                this is an overiirude
-            self.screen.addstr( int(0.9*self.height),
-                                self.LEFTCOLUMN, 
-                                "MANUAL CTRL: {0:<10}".format(controller.Movement.names[controller.movement]))
-            self.screen.addstr( int(0.9*self.height)+1,
-                                self.LEFTCOLUMN, 
-                                "CURR CRD: x = {0:<4}  y = {1:<4}".format(str(controller.xcoord), str(controller.ycoord)))
-            
-            
             self.graphics.point((0.5+controller.xcoord/1000.0, 1.0-0.5+controller.ycoord/1000.0))
             self.graphics.update()
             """
@@ -106,8 +99,10 @@ class Interface(object):
         
             if (c==ord('q')):
                 go=0
+            elif (c==ord('l')):
+                self.loadfile()
             elif (c==ord('s')):   
-                pass
+                self.dowhateverSis()
             elif (c==ord('o')):
                 self.resetorigin()
             elif (c==ord('i')):
@@ -124,6 +119,8 @@ class Interface(object):
             self.screen.refresh()
 
     def quit(self):
+        self.screen.clear()
+        self.screen.refresh()
         curses.endwin()
 
 if __name__ == "__main__":
@@ -131,8 +128,86 @@ if __name__ == "__main__":
     def mycallback():
         pass
 
-    interface =Interface()
+    class Mysim(gcode.Simulator):
+
+        def __init__(self, surf, interfaceself):
+            self.interfaceself = interfaceself
+            gcode.Simulator.__init__(self, surf)
+
+        def raisedrill(self):
+            self.surf.pixelstyle.color = self.color1
+            self.interfaceself.drillmessage("raise mill and press space to continue...")
+
+        def lowerdrill(self):
+            self.surf.pixelstyle.color = self.color2
+            self.interfaceself.drillmessage("lower mill and press space to continue...") 
+
+        def simfinished(self):
+            self.interfaceself.drillmessage("Simulation finished, press space to continue") 
+
+        def pause(self):
+            self.interfaceself.ifpause()
+
+        def movex(self, dx):
+            pass
+
+        def movey(self, dy):
+            pass
+
+    class Myinterface(Interface):
     
+        def __init__(self):
+            self.surface = fb.Surface()
+            self.surf = fb.Surface((800,200),(300,300))
+            self.parser = gcode.Parse()
+            self.sim = Mysim(self.surf, self)
+            Interface.__init__(self)
+
+        def pause(self):
+            go = 1
+            while (go):
+                c=self.screen.getch()
+                if (c==ord(' ')): 
+                    go=0
+
+        def ifpause(self):
+            c=self.screen.getch()
+            if (c==ord(' ')): self.pause()
+
+        def resetorigin(self):
+            pass
+
+        def decrementx(self):
+            pass
+
+        def decrementy(self):
+            pass
+
+        def incrementx(self):
+            #print "move x"
+            self.sim.movex(1)
+
+        def incrementy(self):
+            pass
+
+        def dowhateverSis(self):
+            self.sim.sim()
+
+        def drillmessage(self, message):
+            self.screen.addstr(int(0.8*self.height),self.LEFTCOLUMN, "Drill MSG:{0}".format(message))
+            self.screen.refresh()
+            self.pause()
+            self.screen.addstr(int(0.8*self.height),self.LEFTCOLUMN,"                                                       ")
+            self.screen.refresh()
+
+        def loadfile(self):
+            self.parser.filename = "../../gcodeparser/gcodeparser/gcodeparser/spacer.ngc"
+            self.parser.parse()
+            self.sim.geometries = self.parser.geometries
+            self.sim.draw()
+
+    interface =Myinterface()
+        
     interface.main()
     interface.loop()
     interface.quit()
