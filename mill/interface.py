@@ -201,7 +201,7 @@ if __name__ == "__main__":
             self.screen.refresh()
 
         def loadfile(self):
-            self.parser.filename = "../../gcodeparser/gcodeparser/gcodeparser/spacer.ngc"
+            self.parser.filename = "spacer.ngc"
             self.parser.parse()
             self.sim.geometries = self.parser.geometries
             self.sim.draw()
