@@ -85,7 +85,10 @@ class Interface(object):
 
     def loadfile(self):
         pass        
-        
+    
+    def handlerestkeypresses(self,c ):
+        pass
+
     def loop(self):
         go=1
         self.draw()
@@ -132,7 +135,7 @@ class Interface(object):
                 self.decrementx()
             elif (c==ord('k')):
                 self.incrementx()
-
+            self.handlerestkeypresses(c)
             time.sleep(0.02)
             self.millhandler()
             self.screen.refresh()
