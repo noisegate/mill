@@ -52,16 +52,16 @@ class Interface(object):
     def resetorigin(self):
         pass
 
-    def decrementy(self):
+    def decrementy(self,x):
         pass
 
-    def decrementx(self):
+    def decrementx(self,x):
         pass
 
-    def incrementx(self):
+    def incrementx(self,x):
         pass
 
-    def incrementy(self):
+    def incrementy(self,x):
         pass
 
     def millhandler(self):
@@ -131,14 +131,6 @@ class Interface(object):
             #    self.generichandler('d')
             elif (c==ord('o')):
                 self.resetorigin()
-            elif (c==ord('i')):
-                self.decrementy()
-            elif (c==ord('m')):
-                self.incrementy()
-            elif (c==ord('j')):
-                self.decrementx()
-            elif (c==ord('k')):
-                self.incrementx()
             else:
                 self.generichandler(c)
             self.handlerestkeypresses(c)
