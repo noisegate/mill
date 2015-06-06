@@ -105,34 +105,7 @@ class Interface(object):
             """
             self.updatedata(direction, x, y)
         
-            if (c==ord('q')):
-                go=0
-            elif (c==ord('l')):
-                self.loadfile()
-            elif (c==ord('S')):   
-                self.dowhateverSis(0)
-            elif (c==ord('C')):
-                self.dowhateverSis(1)
-            #elif (c==ord('w')):
-            #    self.generichandler('w')
-            #elif (c==ord('z')):
-            #    self.generichandler('z')
-            #elif (c==ord('a')):
-            #    self.generichandler('a')
-            #elif (c==ord('s')):
-            #    self.generichandler('s')
-            #elif (c==ord('+')):
-            #    self.generichandler('+')
-            #elif (c==ord('-')):
-            #    self.generichandler('-')
-            #elif (c==ord('e')):
-            #    self.generichandler('e')
-            #elif (c==ord('d')):    
-            #    self.generichandler('d')
-            elif (c==ord('o')):
-                self.resetorigin()
-            else:
-                self.generichandler(c)
+            go = self.generichandler(c)
             self.handlerestkeypresses(c)
             time.sleep(0.02)
             self.millhandler()
